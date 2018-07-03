@@ -25,7 +25,3 @@ a file object) and yields from that iterable inside its context manager.
   >>> for line in w(open('myfile.txt')):
   ...     # do something
   ...
-
-It's also got a date parsing helper. Probably not that interesting. I
-also keep some of my experiments in ``experiments.py``. They are not
-intended for anything, but they may grow up one day.
