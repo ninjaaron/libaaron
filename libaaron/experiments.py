@@ -1,7 +1,10 @@
+from . import cached
+
+
 #  === data structures === #
 class LinkedList:
     """immutable, singly-linked list based on tuples. For why, I don't know."""
-    __slots__ = 'node',
+    __slots__ = 'node', '_tail'
 
     def __init__(self, *args):
         node = ()
@@ -13,7 +16,7 @@ class LinkedList:
     def head(self):
         return self.node[0]
 
-    @property
+    @cached
     def tail(self):
         new = LinkedList()
         new.node = self.node[1]
