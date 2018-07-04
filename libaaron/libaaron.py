@@ -11,7 +11,6 @@ class reify:
     Stolen from pyramid.
     http://docs.pylonsproject.org/projects/pyramid/en/latest/api/decorator.html#pyramid.decorator.reify
     """
-    __slots__ = 'wrapped',
 
     def __init__(self, wrapped):
         self.wrapped = wrapped
