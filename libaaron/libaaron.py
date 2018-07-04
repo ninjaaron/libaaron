@@ -46,3 +46,14 @@ def w(iterable):
     """yields from an iterable with its context manager."""
     with iterable:
         yield from iterable
+
+
+class DotDict(dict):
+    "dict for people who are too lazy to type brackets and quotation marks"
+    __slots__ = ()
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+    def __dir__(self):
+        return list(self)
