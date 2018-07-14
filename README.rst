@@ -25,3 +25,13 @@ a file object) and yields from that iterable inside its context manager.
   >>> for line in w(open('myfile.txt')):
   ...     # do something
   ...
+
+``flatten`` is a function that takes an iterable as an arguments and
+recursively yields all contents from nested iterables (except strings,
+which are yielded as strings). The optional second argument is a
+function that will be used to convert any mappings into iterables before
+yielding from them (in the event you want to yield from their values or
+something else).
+
+``DotDict`` is a subclass of dict which allows fetching items with dot
+syntax. Useful as an object_hook when deserializing JSON, perhaps.

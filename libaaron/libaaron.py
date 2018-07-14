@@ -1,4 +1,5 @@
 import functools
+import typing as t
 
 
 class reify:
@@ -12,7 +13,7 @@ class reify:
     http://docs.pylonsproject.org/projects/pyramid/en/latest/api/decorator.html#pyramid.decorator.reify
     """
 
-    def __init__(self, wrapped):
+    def __init__(self, wrapped: t.Callable):
         self.wrapped = wrapped
         functools.update_wrapper(self, wrapped)
 
@@ -24,7 +25,7 @@ class reify:
         return val
 
 
-def cached(method):
+def cached(method) -> property:
     """alternative to reify and property decorators. caches the value when it's
     generated. It cashes it as _methodname.
     """
@@ -41,7 +42,7 @@ def cached(method):
     return wrapper
 
 
-def w(iterable):
+def w(iterable: t.Iterable) -> t.Iterable:
     """yields from an iterable with its context manager."""
     with iterable:
         yield from iterable
@@ -56,3 +57,15 @@ class DotDict(dict):
 
     def __dir__(self):
         return list(self)
+ 
+
+def flatten(iterable: t.Iterable, map2iter: t.Callable=None) -> t.Iterator:
+    """recursively flatten nested objects"""
+    if map2iter and isinstance(iterable, t.Mapping):
+        iterable = map2iter(iterable)
+
+    for item in iterable:
+        if isinstance(item, str) or not isinstance(item, t.Iterable):
+            yield item
+        else:
+            yield from flatten(item, map2iter)
