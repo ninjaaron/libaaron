@@ -7,7 +7,7 @@ with open('README.rst') as fh:
 
 setup(name=package,
       version=version,
-      description='Functions I like to pack along for various things',
+      description='trivial functions I like to pack along for various things',
       long_description=long_description,
       url='https://github.com/ninjaaron/libaaron',
       packages=['libaaron'],
