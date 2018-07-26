@@ -3,6 +3,10 @@ libaaron
 
 Just I library of handy functions I like to bring along.
 
+.. contents::
+
+``reify`` 
+----------
 ``reify`` is a decorator I stole from the Pylons project that I like to
 use frequently.
 
@@ -14,7 +18,10 @@ from the docstring:
     replacing the function it decorates with an instance variable.  It is, in
     Python parlance, a non-data descriptor.
 
-``cached`` is a decorator that makes a property but caches it's results.
+``cached``
+----------
+
+``cached`` is a decorator that makes a property but caches its results.
 It's functionally similar to reify, but it dynamically creates a
 "private" attribute to cache the result instead of messing with
 descriptors. This approach is comppatible with slots. I love slots.
@@ -33,21 +40,27 @@ a file object) and yields from that iterable inside its context manager.
   >>> for line in w(open('myfile.txt')):
   ...     # do something
   ...
-
+``flatten``
+-----------
 ``flatten`` is a function that takes an iterable as an arguments and
 recursively yields all contents from nested iterables (except strings,
 which are yielded as strings). The optional second argument is a
 function that will be used to convert any mappings into iterables before
 yielding from them (in the event you want to yield from their values or
 something else).
-
+``quiteinterrupt``
+------------------
 ``quiteinterrupt`` is a function that adds a signal handler which
 silences the stacktrace when the a script is stopped with a keyboard
 interrupt. It can optionally print a message on interrupt.
 
+``DotDict``
+-----------
 ``DotDict`` is a subclass of dict which allows fetching items with dot
 syntax. Useful as an ``object_hook`` when deserializing JSON, perhaps.
 
+``PBytes``
+----------
 ``PBytes`` is a subclass of ``int`` which has a ``__str__`` that shows
 interprets it as a number of bytes and make a human readable format. It
 can also parse a number of bytes from a string.
