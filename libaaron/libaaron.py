@@ -1,4 +1,8 @@
 import functools
+import signal
+import string
+import sys
+from collections import abc
 
 
 class reify:
@@ -26,9 +30,9 @@ class reify:
 
 def cached(method) -> property:
     """alternative to reify and property decorators. caches the value when it's
-    generated. It cashes it as _methodname.
+    generated. It cashes it as instance._name_of_the_property.
     """
-    name = '_%s' % method.__name__
+    name = '_' + method.__name__
 
     @property
     def wrapper(self):
@@ -64,7 +68,64 @@ def flatten(iterable, map2iter=None):
         iterable = map2iter(iterable)
 
     for item in iterable:
-        if isinstance(item, str) or not isinstance(item):
+        if isinstance(item, str) or not isinstance(item, abc.Iterable):
             yield item
         else:
             yield from flatten(item, map2iter)
+
+
+def quietinterrupt(msg=None):
+    """add a handler for SIGINT that optionally prints a given message. For
+    stopping scripts without having to see the stacktrace.
+    """
+
+    def handler(*args):
+        if msg:
+            print(msg, file=sys.stderr)
+        sys.exit(1)
+
+    signal.signal(signal.SIGINT, handler)
+
+
+class PBytes(int):
+    __slots__ = ()
+    units = 'bkmtpezy'
+    key = {v: i for i, v in enumerate(units)}
+    digits = set(string.digits)
+    digits.update('. ')
+
+    def __str__(self):
+        n, u = self.human_readable()
+        if u == 'B':
+            return str(n) + ' bytes'
+
+        return '%.1f %siB' % self.human_readable()
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, int(self))
+
+    def human_readable(self, decimal=False):
+        divisor = 1000 if decimal else 1024
+        number = int(self)
+        for unit in self.units:
+            if number < divisor:
+                break
+            number /= divisor
+        return number, unit.upper()
+
+    @classmethod
+    def from_str(cls, human_readable_str, decimal=False, bits=False):
+        divisor = 1000 if decimal else 1024
+        num = []
+        for c in human_readable_str:
+            if c not in cls.digits:
+                break
+            num.append(c)
+        num = ''.join(num)
+        try:
+            num = int(num)
+        except ValueError:
+            num = float(num)
+        if bits:
+            num /= 8
+        return cls(round(num * divisor ** cls.key[c.lower()]))

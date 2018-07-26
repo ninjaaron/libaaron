@@ -6,6 +6,14 @@ Just I library of handy functions I like to bring along.
 ``reify`` is a decorator I stole from the Pylons project that I like to
 use frequently.
 
+from the docstring:
+
+    Use as a class method decorator.  It operates almost exactly like the
+    Python ``@property`` decorator, but it puts the result of the method it
+    decorates into the instance dict after the first call, effectively
+    replacing the function it decorates with an instance variable.  It is, in
+    Python parlance, a non-data descriptor.
+
 ``cached`` is a decorator that makes a property but caches it's results.
 It's functionally similar to reify, but it dynamically creates a
 "private" attribute to cache the result instead of messing with
@@ -33,5 +41,39 @@ function that will be used to convert any mappings into iterables before
 yielding from them (in the event you want to yield from their values or
 something else).
 
+``quiteinterrupt`` is a function that adds a signal handler which
+silences the stacktrace when the a script is stopped with a keyboard
+interrupt. It can optionally print a message on interrupt.
+
 ``DotDict`` is a subclass of dict which allows fetching items with dot
-syntax. Useful as an object_hook when deserializing JSON, perhaps.
+syntax. Useful as an ``object_hook`` when deserializing JSON, perhaps.
+
+``PBytes`` is a subclass of ``int`` which has a ``__str__`` that shows
+interprets it as a number of bytes and make a human readable format. It
+can also parse a number of bytes from a string.
+
+.. code:: python
+
+  >>> print(PBytes(2134963))
+  2.0 MiB
+  >>> PBytes.from_str('35.8 KB')
+  PBytes(36659)
+  >>> PBytes.from_str('35.8 KB', decimal=True)
+  PBytes(35800)
+
+Internally, it's just an integer, so you can do any integer operations
+with it. Note that ``from_str`` does not attempt to determine whether it
+is a binary or decimal format. Default is binary. Use ``decimal=True``
+to explicitely change the behavior.
+
+It also has a ``human_readable`` method which returns a number and the
+units for easily constructing alterative representations:
+
+.. code:: python
+
+  >>> PBytes(83629).human_readable()
+  (81.6689453125, 'K')
+  >>> '%d%s' % PBytes(83629).human_readable()
+  '81K'
+  >>> '%d%s' % PBytes(83629).human_readable(decimal=True)
+  '83K'
