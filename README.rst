@@ -48,6 +48,7 @@ which are yielded as strings). The optional second argument is a
 function that will be used to convert any mappings into iterables before
 yielding from them (in the event you want to yield from their values or
 something else).
+
 ``quiteinterrupt``
 ------------------
 ``quiteinterrupt`` is a function that adds a signal handler which
