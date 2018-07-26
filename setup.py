@@ -1,7 +1,7 @@
 from setuptools import setup
 
 package = 'libaaron'
-version = '0.9'
+version = '0.10'
 with open('README.rst') as fh:
     long_description = fh.read()
 

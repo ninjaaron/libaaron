@@ -26,6 +26,8 @@ It's functionally similar to reify, but it dynamically creates a
 "private" attribute to cache the result instead of messing with
 descriptors. This approach is comppatible with slots. I love slots.
 
+``w``
+-----
 ``w`` is a function that takes an iterable with a context manager (like
 a file object) and yields from that iterable inside its context manager.
 
