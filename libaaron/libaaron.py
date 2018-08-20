@@ -89,7 +89,7 @@ def quietinterrupt(msg=None):
 
 class PBytes(int):
     __slots__ = ()
-    units = 'bkmtpezy'
+    units = 'bkmgtpezy'
     key = {v: i for i, v in enumerate(units)}
     digits = set(string.digits)
     digits.update('. ')
