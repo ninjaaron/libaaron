@@ -88,6 +88,11 @@ def quietinterrupt(msg=None):
 
 
 class PBytes(int):
+    """child class of int to facilitate conversion between memory
+    representations in bytes and human readable formats. Mostly for pretty
+    printing, but it can also parse approximate numbers of bytes from a
+    human_readable string.
+    """
     __slots__ = ()
     units = 'bkmgtpezy'
     key = {v: i for i, v in enumerate(units)}
@@ -129,3 +134,21 @@ class PBytes(int):
         if bits:
             num /= 8
         return cls(round(num * divisor ** cls.key[c.lower()]))
+
+
+try:
+    from lxml import etree
+except ImportError:
+    pass
+else:
+
+    def lxml_little_iter(*args, **kwargs):
+        """Use lxml.etree.iterparse to iterate over elements, but clear the
+        tree as we iterate.
+        """
+        context = etree.iterparse(*args, **kwargs)
+        for event, element in context:
+            yield event, element
+            element.clear()
+            while element.getprevious() is not None:
+                del element.getparent()[0]
