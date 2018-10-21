@@ -1,7 +1,7 @@
 libaaron
 ========
 
-Just I library of handy functions I like to bring along.
+Just my library of handy functions I like to bring along.
 
 .. contents::
 
@@ -93,3 +93,31 @@ units for easily constructing alterative representations:
   '81K'
   >>> '%d%s' % PBytes(83629).human_readable(decimal=True)
   '83K'
+
+
+``Enum``
+________
+Make enum.Enum_ objects, but with nicer syntax.
+
+.. code:: Python
+
+  >>> class var(libaaron.Enum):
+  ...     foo
+  ...     bar
+  ...     baz
+  ...
+  >>> var.foo
+  <var.foo: 1>
+  >>> var.bar
+  <var.bar: 2>
+  >>> var.baz
+  <var.baz: 3>
+  >>> type(var)
+  <class 'enum.EnumMeta'>
+
+Note that the resulting object is the same type as those created with
+enum.Enum_, not a work-alike object.
+
+
+.. _enum.Enum:
+  https://docs.python.org/3/library/enum.html#creating-an-enum

@@ -1,3 +1,4 @@
+import enum
 import functools
 import signal
 import string
