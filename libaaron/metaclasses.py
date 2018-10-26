@@ -17,19 +17,17 @@ class StrangeDict(dict):
 
 
 class EnumMeta(type):
-    base = None
-
     def __prepare__(cls, name, **kwargs):
         return StrangeDict(**kwargs)
 
     def __new__(cls, name, bases, dct):
-        if cls.base:
-            return enum.Enum(
-                name, ' '.join(v for v in dct.values() if isinstance(v, Arg)))
-        cls.base = name
+        if not bases:
+            return super().__new__(cls, name, bases, dict(dct))
 
-        return super().__new__(cls, name, bases, dict(dct))
-
+        return enum.Enum(
+            name,
+            ' '.join(v for v in dct.values() if isinstance(v, Arg))
+        )
 
 
 class Enum(metaclass=EnumMeta):
@@ -48,7 +46,7 @@ def mkinit(slots):
         "object.__setattr__(self, {!r}, {})".format(slot, slot)
         for slot in slots
     )
-    ns ={}
+    ns = {}
     exec(init_template.format(sig, body), ns)
     return ns['__init__']
 
@@ -71,7 +69,6 @@ def struct_setstate(self, state):
         object.__setattr__(self, k, v)
 
 
-
 def _dict(self):
     dct = {}
     for slot in self.__slots__:
@@ -83,15 +80,12 @@ def _dict(self):
 
 
 class StructMeta(type):
-    base = None
-
     def __prepare__(cls, name, **kwargs):
         return StrangeDict(**kwargs)
 
     def __new__(cls, name, bases, dct):
         dct = dict(dct)
-        if not cls.base:
-            cls.base = name
+        if not bases:
             return super().__new__(cls, name, bases, dct)
 
         annotations = dct.get('__annotations__')
@@ -102,6 +96,12 @@ class StructMeta(type):
             for k in slots:
                 del dct[k]
 
+        methods = (kv for base in bases for kv in vars(base).items())
+
+        for k, v in methods:
+            if k not in dct:
+                dct[k] = v
+
         for k, v in (
                 ('__slots__', slots),
                 ('__init__', mkinit(slots)),
@@ -110,10 +110,8 @@ class StructMeta(type):
                 ('__setstate__', struct_setstate),
                 ('_dict', _dict),
         ):
-            if not k in dct:
+            if k not in dct:
                 dct[k] = v
-        if Frozen in bases:
-            dct['__setattr__'] = Frozen.__setattr__
         return type(name, (), dct)
 
 
@@ -125,14 +123,11 @@ class Immutable(Exception):
     pass
 
 
-StructMeta.base = None
-
-
 class Frozen(metaclass=StructMeta):
     def __setattr__(self, attr, value):
-       raise Immutable(
-           "can't set {0}.{1}. type {0} is immutable.".format(
-               self.__class__.__name__,
-               attr,
-               value
-           ))
+        raise Immutable(
+            "can't set {0}.{1}. type {0} is immutable.".format(
+                self.__class__.__name__,
+                attr,
+                value
+            ))
