@@ -7,6 +7,7 @@ from .libaaron import (
     quietinterrupt,
     PBytes,
 )
+from .metaclasses import Struct, Frozen, Enum
 
 try:
     from .libaaron import xml_little_iter
