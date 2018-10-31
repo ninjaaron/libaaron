@@ -51,32 +51,18 @@ def mkinit(slots):
     return ns['__init__']
 
 
-def struct_repr(self):
-    return "{}({})".format(
-        self.__class__.__name__,
-        ', '.join(
-            "{}={!r}".format(k, getattr(self, k)) for k in self.__slots__
-        )
-    )
+class Mutablility(Exception):
+    pass
 
 
-def struct_getstate(self):
-    return [getattr(self, k) for k in self.__slots__]
-
-
-def struct_setstate(self, state):
-    for k, v in zip(self.__slots__, state):
-        object.__setattr__(self, k, v)
-
-
-def _dict(self):
-    dct = {}
-    for slot in self.__slots__:
-        val = getattr(self, slot)
-        if hasattr(val, '_dict'):
-            dct[slot] = val._dict()
-        else:
-            dct[slot] = val
+class Immutable:
+    def __setattr__(self, attr, value):
+        raise Mutablility(
+            "can't set {0}.{1}. type {0} is immutable.".format(
+                self.__class__.__name__,
+                attr,
+                value
+            ))
 
 
 class StructMeta(type):
@@ -97,37 +83,37 @@ class StructMeta(type):
                 del dct[k]
 
         methods = (kv for base in bases for kv in vars(base).items())
-
         for k, v in methods:
             if k not in dct:
                 dct[k] = v
 
-        for k, v in (
-                ('__slots__', slots),
-                ('__init__', mkinit(slots)),
-                ('__repr__', struct_repr),
-                ('__getstate__', struct_getstate),
-                ('__setstate__', struct_setstate),
-                ('_dict', _dict),
-        ):
-            if k not in dct:
-                dct[k] = v
+        dct['__slots__'] = slots
+        dct['__init__'] = mkinit(slots)
         return type(name, (), dct)
 
 
 class Struct(metaclass=StructMeta):
-    pass
+    def __repr__(self):
+        return "{}({})".format(
+            self.__class__.__name__,
+            ', '.join(
+                "{}={!r}".format(k, getattr(self, k)) for k in self.__slots__
+            )
+        )
 
+    def __getstate__(self):
+        return [getattr(self, k) for k in self.__slots__]
 
-class Immutable(Exception):
-    pass
+    def __setstate__(self, state):
+        for k, v in zip(self.__slots__, state):
+            object.__setattr__(self, k, v)
 
-
-class Frozen(metaclass=StructMeta):
-    def __setattr__(self, attr, value):
-        raise Immutable(
-            "can't set {0}.{1}. type {0} is immutable.".format(
-                self.__class__.__name__,
-                attr,
-                value
-            ))
+    def to_dict(self):
+        dct = {}
+        for slot in self.__slots__:
+            val = getattr(self, slot)
+            if hasattr(val, '_dict'):
+                dct[slot] = val._dict()
+            else:
+                dct[slot] = val
+        return dct
