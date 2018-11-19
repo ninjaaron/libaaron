@@ -1,4 +1,3 @@
-import enum
 import functools
 import signal
 import string
@@ -137,6 +136,23 @@ class PBytes(int):
         return cls(round(num * divisor ** cls.key[c.lower()]))
 
 
+def unpacktsv(file, sep='\t'):
+    return (line.rstrip().split(sep) for line in file)
+
+
+def printtsv(table, sep='\t', file=sys.stdout):
+    for record in table:
+        print(*record, sep=sep, file=file)
+
+
+def mkdummy(name, **attrs):
+    """Make a placeholder object that uses its own name for its repr"""
+    return type(name, (), dict(
+        __repr__=(lambda self: '<%s>' % name), **attrs))()
+
+
+empty = mkdummy(
+    'empty', __bool__=(lambda self: False), __str__=(lambda self: ''))
 try:
     from lxml import etree
 except ImportError:

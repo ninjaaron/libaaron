@@ -6,6 +6,9 @@ from .libaaron import (
     flatten,
     quietinterrupt,
     PBytes,
+    mkdummy,
+    unpacktsv,
+    printtsv
 )
 from .metaclasses import Struct, Immutable, Enum
 
