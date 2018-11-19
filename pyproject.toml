@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "libaaron"
+version = "1.0.0"
+description = "trivial functions I like to pack along for various things"
+authors = ["Aaron Christianson <ninjaaron@gmail.com>"]
+license = "BSD-2-Clause"
+readme = "README.rst"
+repository = "https://github.com/ninjaaron/libaaron"
+
+[tool.poetry.dependencies]
+python = "^3.5"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
