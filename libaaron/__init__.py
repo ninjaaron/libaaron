@@ -10,7 +10,6 @@ from .libaaron import (
     unpacktsv,
     printtsv
 )
-from .metaclasses import Struct, Immutable, Enum
 
 try:
     from .libaaron import xml_little_iter
