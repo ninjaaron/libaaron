@@ -32,7 +32,7 @@ def cached(method) -> property:
     """alternative to reify and property decorators. caches the value when it's
     generated. It cashes it as instance._name_of_the_property.
     """
-    name = '_' + method.__name__
+    name = "_" + method.__name__
 
     @property
     def wrapper(self):
@@ -42,6 +42,7 @@ def cached(method) -> property:
             val = method(self)
             setattr(self, name, val)
             return val
+
     return wrapper
 
 
@@ -93,21 +94,22 @@ class PBytes(int):
     printing, but it can also parse approximate numbers of bytes from a
     human_readable string.
     """
+
     __slots__ = ()
-    units = 'bkmgtpezy'
+    units = "bkmgtpezy"
     key = {v: i for i, v in enumerate(units)}
     digits = set(string.digits)
-    digits.update('. ')
+    digits.update(". ")
 
     def __str__(self):
         n, u = self.human_readable()
-        if u == 'B':
-            return str(n) + ' bytes'
+        if u == "B":
+            return str(n) + " bytes"
 
-        return '%.1f %siB' % self.human_readable()
+        return "%.1f %siB" % self.human_readable()
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, int(self))
+        return "%s(%r)" % (self.__class__.__name__, int(self))
 
     def human_readable(self, decimal=False):
         divisor = 1000 if decimal else 1024
@@ -126,7 +128,7 @@ class PBytes(int):
             if c not in cls.digits:
                 break
             num.append(c)
-        num = ''.join(num)
+        num = "".join(num)
         try:
             num = int(num)
         except ValueError:
@@ -136,23 +138,21 @@ class PBytes(int):
         return cls(round(num * divisor ** cls.key[c.lower()]))
 
 
-def unpacktsv(file, sep='\t'):
+def unpacktsv(file, sep="\t"):
     return (line.rstrip().split(sep) for line in file)
 
 
-def printtsv(table, sep='\t', file=sys.stdout):
+def printtsv(table, sep="\t", file=sys.stdout):
     for record in table:
         print(*record, sep=sep, file=file)
 
 
 def mkdummy(name, **attrs):
     """Make a placeholder object that uses its own name for its repr"""
-    return type(name, (), dict(
-        __repr__=(lambda self: '<%s>' % name), **attrs))()
+    return type(name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs))()
 
 
-empty = mkdummy(
-    'empty', __bool__=(lambda self: False), __str__=(lambda self: ''))
+empty = mkdummy("empty", __bool__=(lambda self: False), __str__=(lambda self: ""))
 try:
     from lxml import etree
 except ImportError:

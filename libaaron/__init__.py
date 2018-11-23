@@ -8,7 +8,7 @@ from .libaaron import (
     PBytes,
     mkdummy,
     unpacktsv,
-    printtsv
+    printtsv,
 )
 
 try:
