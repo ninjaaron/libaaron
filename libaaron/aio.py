@@ -10,9 +10,5 @@ if (major, minor) < (3, 7):
         loop = get_event_loop()
         return loop.run_until_complete(coro)
 
-    def spawn(coro):
+    def create_task(coro):
         return get_event_loop().create_task(coro)
-
-
-else:
-    spawn = create_task
