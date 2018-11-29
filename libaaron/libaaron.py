@@ -46,6 +46,11 @@ def cached(method) -> property:
     return wrapper
 
 
+def fieldappend(dct: dict, key, value):
+    """append a value to a dictionary key whose value is a list"""
+    dct.setdefault(key, []).append(value)
+
+
 def w(iterable):
     """yields from an iterable with its context manager."""
     with iterable:
