@@ -46,7 +46,7 @@ def cached(method) -> property:
     return wrapper
 
 
-def fieldappend(dct: dict, key, value):
+def addfield(dct: dict, key, value):
     """append a value to a dictionary key whose value is a list"""
     dct.setdefault(key, []).append(value)
 
