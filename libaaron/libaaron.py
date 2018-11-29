@@ -47,7 +47,7 @@ def cached(method) -> property:
 
 
 def addfield(dct: dict, key, value):
-    """append a value to a dictionary key whose value is a list"""
+    """you have a list of dictionaries. append value to the list of key."""
     dct.setdefault(key, []).append(value)
 
 
