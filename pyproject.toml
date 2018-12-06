@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "libaaron"
-version = "1.1.2"
+version = "1.1.3"
 description = "trivial functions I like to pack along for various things"
 authors = ["Aaron Christianson <ninjaaron@gmail.com>"]
 license = "BSD-2-Clause"
