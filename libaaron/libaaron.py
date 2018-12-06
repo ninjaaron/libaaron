@@ -157,7 +157,39 @@ def mkdummy(name, **attrs):
     return type(name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs))()
 
 
-empty = mkdummy("empty", __bool__=(lambda self: False), __str__=(lambda self: ""))
+def iter_record(record: dict):
+    for fname, flist in record.items():
+        for field in flist:
+            for sname, sublist in field.items():
+                for subfield in sublist:
+                    yield fname, sname, subfield
+
+
+class reportiter:
+    __slots__ = "iter", "report", "count", "report"
+
+    def __init__(
+        self, iterable, frequency=100, report=lambda i: print(i, file=sys.stderr)
+    ):
+        self.iter = iter(iterable)
+        self.report = report
+        self.frequency = frequency
+        self.count = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.count += 1
+        if not self.count % self.frequency:
+            self.report(self.count)
+        try:
+            return next(self.iter)
+        except StopIteration:
+            self.report(self.count)
+            raise
+
+
 try:
     from lxml import etree
 except ImportError:
