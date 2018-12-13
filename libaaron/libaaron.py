@@ -46,11 +46,6 @@ def cached(method) -> property:
     return wrapper
 
 
-def addfield(dct: dict, key, value):
-    """you have a list of dictionaries. append value to the list of key."""
-    dct.setdefault(key, []).append(value)
-
-
 def w(iterable):
     """yields from an iterable with its context manager."""
     with iterable:
@@ -155,14 +150,6 @@ def printtsv(table, sep="\t", file=sys.stdout):
 def mkdummy(name, **attrs):
     """Make a placeholder object that uses its own name for its repr"""
     return type(name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs))()
-
-
-def iter_record(record: dict):
-    for fname, flist in record.items():
-        for field in flist:
-            for sname, sublist in field.items():
-                for subfield in sublist:
-                    yield fname, sname, subfield
 
 
 class reportiter:
