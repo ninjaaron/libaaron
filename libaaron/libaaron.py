@@ -93,7 +93,7 @@ def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping):
         """
         for key, value in other.items():
             if isinstance(value, abc.Mapping):
-                inner(value, (previouskeys, key))
+                inner(value, (*previouskeys, key))
             else:
                 node = mapping
                 for previouskey in previouskeys:
