@@ -80,7 +80,7 @@ def flatten(iterable, map2iter=None):
             yield from flatten(item, map2iter)
 
 
-def deepupdate(mapping: t.MutableMapping, other: t.Mapping):
+def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping):
     """update one dictionary from another recursively. Only individual
     values will be overwritten--not entire branches of nested
     dictionaries.
@@ -92,7 +92,7 @@ def deepupdate(mapping: t.MutableMapping, other: t.Mapping):
         recursively on the pimary mapping when a value needs updateing.
         """
         for key, value in other.items():
-            if isinstance(value, t.Mapping):
+            if isinstance(value, abc.Mapping):
                 inner(value, (previouskeys, key))
             else:
                 node = mapping
