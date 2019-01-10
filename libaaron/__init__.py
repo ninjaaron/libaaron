@@ -12,6 +12,6 @@ from .libaaron import (
 )
 
 try:
-    from .libaaron import xml_little_iter
+    from .libaaron import lxml_little_iter
 except ImportError:
     pass
