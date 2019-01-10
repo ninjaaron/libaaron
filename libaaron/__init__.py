@@ -10,6 +10,7 @@ from .libaaron import (
     mkdummy,
     unpacktsv,
     printtsv,
+    addfield,
 )
 
 try:
