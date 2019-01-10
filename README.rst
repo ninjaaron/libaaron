@@ -42,6 +42,7 @@ a file object) and yields from that iterable inside its context manager.
   >>> for line in w(open('myfile.txt')):
   ...     # do something
   ...
+ 
 ``flatten``
 -----------
 ``flatten`` is a function that takes an iterable as an arguments and
