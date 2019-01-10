@@ -4,6 +4,7 @@ from .libaaron import (
     w,
     DotDict,
     flatten,
+    deepupdate,
     quietinterrupt,
     PBytes,
     mkdummy,

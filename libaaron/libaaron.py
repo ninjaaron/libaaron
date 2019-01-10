@@ -75,6 +75,29 @@ def flatten(iterable, map2iter=None):
             yield from flatten(item, map2iter)
 
 
+def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping):
+    """update one dictionary from another recursively. Only individual
+    values will be overwritten--not entire branches of nested
+    dictionaries.
+    """
+
+    def inner(other, previouskeys):
+        """previouskeys is a tuple that stores all the names of keys
+        we've recursed into so far so it can they can be looked up
+        recursively on the pimary mapping when a value needs updateing.
+        """
+        for key, value in other.items():
+            if isinstance(value, abc.Mapping):
+                inner(value, (*previouskeys, key))
+            else:
+                node = mapping
+                for previouskey in previouskeys:
+                    node = node.setdefault(previouskey, {})
+                node[key] = value
+
+    inner(other, ())
+
+
 def quietinterrupt(msg=None):
     """add a handler for SIGINT that optionally prints a given message. For
     stopping scripts without having to see the stacktrace.
