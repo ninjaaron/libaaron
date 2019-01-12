@@ -1,7 +1,9 @@
 libaaron
 ========
 
-Just my library of handy functions I like to bring along.
+Just my library of handy functions I like to bring along. Other people
+may feel free to copy this library, but they should not depend on it.
+The content and APIs are subject to change without notice.
 
 .. contents::
 
@@ -52,11 +54,65 @@ function that will be used to convert any mappings into iterables before
 yielding from them (in the event you want to yield from their values or
 something else).
 
+``deepupdate``
+--------------
+Updates a dictionary from another dictionary, but doesn't overwrite
+entire branches of a tree in the case of nested dictionaries. I use it
+to combine the content from the system configuration file with a user
+configuration file.
+
+.. code:: python
+
+   >>> import libaaron
+   >>> a = {
+   ...     "type": "foo",
+   ...     "content": {
+   ...         "bar": "baz",
+   ...         "eggs": "spam"
+   ...     }
+   ... }
+   >>> b = {
+   ...     "content": {
+   ...         "ham": "sausage",
+   ...         "bar": "lol"
+   ...     }
+   ... }
+   >>> libaaron.deepupdate(a, b)
+   >>> a
+   {
+       'type': 'foo',
+       'content': {
+           'bar': 'lol',
+           'eggs': 'spam',
+           'ham': 'sausage'
+        }
+   }
+
+
+There's also an option, ``listextend``, where, if the value inboth
+dictionaries are sequences, the sequence in ``a`` wil be extended with
+the contents of ``b``. This function could break if the two objects if
+one object has ``b`` has a mapping somewhere that ``a`` simply has a
+string.
+
 ``quiteinterrupt``
 ------------------
 ``quiteinterrupt`` is a function that adds a signal handler which
 silences the stacktrace when the a script is stopped with a keyboard
 interrupt. It can optionally print a message on interrupt.
+
+``lxml_little_iter``
+--------------------
+``lxml_little_iter`` is only available if ``lxml`` is in the
+environment. It's for iterating over very large xml files with many of
+the same kinds of records at the top level (something that would be an
+array in JSON). It is for iterating on data that is too large to fit in
+memory.
+
+This generator function passes all ``*args`` an ``**kwargs`` to
+``lxml.etree.iterparse`` and yields the same ``(even, element)`` tuple.
+However, when the next item is retrieved, the previous element will be
+cleared and all previous nodes are deleted. Thus, the ram is saved.
 
 ``DotDict``
 -----------
@@ -94,31 +150,3 @@ units for easily constructing alterative representations:
   '81K'
   >>> '%d%s' % PBytes(83629).human_readable(decimal=True)
   '83K'
-
-
-``Enum``
-________
-Make enum.Enum_ objects, but with nicer syntax.
-
-.. code:: Python
-
-  >>> class var(libaaron.Enum):
-  ...     foo
-  ...     bar
-  ...     baz
-  ...
-  >>> var.foo
-  <var.foo: 1>
-  >>> var.bar
-  <var.bar: 2>
-  >>> var.baz
-  <var.baz: 3>
-  >>> type(var)
-  <class 'enum.EnumMeta'>
-
-Note that the resulting object is the same type as those created with
-enum.Enum_, not a work-alike object.
-
-
-.. _enum.Enum:
-  https://docs.python.org/3/library/enum.html#creating-an-enum

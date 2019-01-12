@@ -75,7 +75,7 @@ def flatten(iterable, map2iter=None):
             yield from flatten(item, map2iter)
 
 
-def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping):
+def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping, listextend=False):
     """update one dictionary from another recursively. Only individual
     values will be overwritten--not entire branches of nested
     dictionaries.
@@ -89,11 +89,20 @@ def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping):
         for key, value in other.items():
             if isinstance(value, abc.Mapping):
                 inner(value, (*previouskeys, key))
+
             else:
                 node = mapping
                 for previouskey in previouskeys:
                     node = node.setdefault(previouskey, {})
-                node[key] = value
+                target = node.get(key)
+                if (
+                    listextend
+                    and isinstance(target, abc.MutableSequuence)
+                    and isinstance(value, abc.Sequence)
+                ):
+                    target.extend(value)
+                else:
+                    node[key] = value
 
     inner(other, ())
 
