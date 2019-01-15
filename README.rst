@@ -89,11 +89,11 @@ configuration file.
    }
 
 
-There's also an option, ``listextend``, where, if the value inboth
-dictionaries are sequences, the sequence in ``a`` wil be extended with
-the contents of ``b``. This function could break if the two objects if
-one object has ``b`` has a mapping somewhere that ``a`` simply has a
-string.
+There's also a ``listextend`` flag, which, when set to ``True``, if
+the value in both dictionaries are sequences, the sequence in ``a``
+will be extended with the contents of ``b``. This function can crash
+if dictionary a ``b`` has a mapping somewhere that ``a`` simply has
+a string.
 
 ``quiteinterrupt``
 ------------------
