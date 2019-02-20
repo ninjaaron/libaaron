@@ -1,4 +1,5 @@
 import functools
+import itertools
 import signal
 import string
 import sys
@@ -50,6 +51,22 @@ def w(iterable):
     """yields from an iterable with its context manager."""
     with iterable:
         yield from iterable
+
+
+def chunkiter(iterable, chunksize):
+    iterator = iter(iterable)
+    for chunk in iter(lambda: list(itertools.islice(iterator, chunksize)), []):
+        yield chunk
+
+
+def chunkprocess(func):
+
+    @functools.wraps(func)
+    def wrapper(iterable, chunksize, *args, **kwargs):
+        for chunk in chunkiter(iterable, chunksize):
+            yield func(chunk, *args, **kwargs)
+
+    return wrapper
 
 
 class DotDict(dict):

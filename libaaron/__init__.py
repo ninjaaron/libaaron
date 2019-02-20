@@ -9,6 +9,8 @@ from .libaaron import (
     PBytes,
     mkdummy,
     unpacktsv,
+    chunkprocess,
+    chunkiter,
     printtsv,
 )
 
