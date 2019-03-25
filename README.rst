@@ -116,7 +116,7 @@ Therefore:
    pipe(value, f, g, h) == h(g(f(value)))
 
 This is to avoid having to come up with a lot of intermediate variable
-names for data pipelines.
+names on the one hand, or deeply nested function calls on the other.
 
 ``pipeline``
 ------------
