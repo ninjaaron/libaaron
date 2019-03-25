@@ -12,6 +12,9 @@ from .libaaron import (
     chunkprocess,
     chunkiter,
     printtsv,
+    pipe,
+    pipeline,
+    fcompose,
 )
 
 try:

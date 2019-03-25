@@ -95,6 +95,54 @@ will be extended with the contents of ``b``. This function can crash
 if dictionary a ``b`` has a mapping somewhere that ``a`` simply has
 a string.
 
+``pipe``
+------------
+``pipe`` is a trivial function that takes an initial value and any
+number of functions as arguments applies them in a compositional manner.
+It is defined thusly:
+
+.. code:: python
+
+   def pipe(value, *functions):
+       for function in functions:
+           value = function(value)
+       return value
+
+
+Therefore:
+
+.. code:: python
+
+   pipe(value, f, g, h) == h(g(f(value)))
+
+This is to avoid having to come up with a lot of intermediate variable
+names for data pipelines.
+
+``pipeline``
+------------
+``pipeline`` is a wrapper on pipe that curries the functions and lets
+you apply the initial arguments later.
+
+.. code:: python
+
+   pipline(f, g, h)(*args, **kwargs) == h(g(f(*args, **kwargs)))
+
+``fcompose``
+------------
+``fcompose`` gives math-like function composition. It's basically
+identical to ``pipeline``, but with reverse application order.
+
+.. code:: python
+
+   # in math, this would look like `f ∘ g ∘ h`
+   fcompose(f, g, h)(*args, **kwargs) == f(g(h(*args, **kwargs)
+
+Note that there is nothing cleaver about how ``pipeline`` and
+``fcompose`` work. They aren't classes that simulate high-order
+functions like ``functools.partial``, they are just normal high order
+functions, and building pipelines upon pipelines isn't going to optimize
+out the call stack.
+
 ``quiteinterrupt``
 ------------------
 ``quiteinterrupt`` is a function that adds a signal handler which

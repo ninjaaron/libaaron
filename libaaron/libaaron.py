@@ -201,6 +201,31 @@ def mkdummy(name, **attrs):
     return type(name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs))()
 
 
+def pipe(value, *functions, funcs=None):
+    """pipe(value, f, g, h) == h(g(f(value)))"""
+    if funcs:
+        functions = funcs
+    for function in functions:
+        value = function(value)
+    return value
+
+
+def pipeline(*functions, funcs=None):
+    """like pipe, but curried:
+
+        pipline(f, g, h)(*args, **kwargs) == h(g(f(*args, **kwargs)))
+    """
+    if funcs:
+        functions = funcs
+    head, *tail = functions
+    return lambda *args, **kwargs: pipe(head(*args, **kwargs), funcs=tail)
+
+
+def fcompose(*functions):
+    """fcompose(f, g, h)(*args, **kwargs) == f(g(h(*args, **kwargs)"""
+    return pipeline(funcs=reversed(functions))
+
+
 class reportiter:
     __slots__ = "iter", "report", "count", "report"
 
