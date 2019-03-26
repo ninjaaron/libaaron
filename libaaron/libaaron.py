@@ -17,7 +17,7 @@ from collections import abc
 
 class reify:
     # pylint: disable=too-few-public-methods
-    """ Use as a class method decorator.  It operates almost exactly like the
+    """Use as a class method decorator.  It operates almost exactly like the
     Python ``@property`` decorator, but it puts the result of the method it
     decorates into the instance dict after the first call, effectively
     replacing the function it decorates with an instance variable.  It is, in
@@ -88,7 +88,10 @@ def chunkprocess(func):
 
 
 class DotDict(dict):
-    "dict for people who are too lazy to type brackets and quotation marks"
+    """dict for people who are too lazy to type brackets and quotation
+    marks
+    """
+
     __slots__ = ()
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
