@@ -1,3 +1,10 @@
+"""libaaron is a bunch of reasonably trivially implemented functions that
+I find generally useful and don't like having to copy around to different
+places every time I want them. I guess it's my own personal "standard
+library". It is stronly recommended that you don't depend on this library
+directly if your name is not Aaron Christianson, but you may feel free to
+copy anything you like.
+"""
 import functools
 import itertools
 import signal
@@ -5,8 +12,11 @@ import string
 import sys
 from collections import abc
 
+# pylint: disable=invalid-name
+
 
 class reify:
+    # pylint: disable=too-few-public-methods
     """ Use as a class method decorator.  It operates almost exactly like the
     Python ``@property`` decorator, but it puts the result of the method it
     decorates into the instance dict after the first call, effectively
@@ -54,12 +64,20 @@ def w(iterable):
 
 
 def chunkiter(iterable, chunksize):
+    """break an iterable into chunks and yield those chunks as lists
+    until there's nothing left to yeild.
+    """
     iterator = iter(iterable)
     for chunk in iter(lambda: list(itertools.islice(iterator, chunksize)), []):
         yield chunk
 
 
 def chunkprocess(func):
+    """take a function that taks an iterable as the first argument.
+    return a wrapper that will break an iterable into chunks using
+    chunkiter and run each chunk in function, yielding the value of each
+    function call as an iterator.
+    """
 
     @functools.wraps(func)
     def wrapper(iterable, chunksize, *args, **kwargs):
@@ -92,7 +110,9 @@ def flatten(iterable, map2iter=None):
             yield from flatten(item, map2iter)
 
 
-def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping, listextend=False):
+def deepupdate(
+    mapping: abc.MutableMapping, other: abc.Mapping, listextend=False
+):
     """update one dictionary from another recursively. Only individual
     values will be overwritten--not entire branches of nested
     dictionaries.
@@ -114,7 +134,7 @@ def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping, listextend=False
                 target = node.get(key)
                 if (
                     listextend
-                    and isinstance(target, abc.MutableSequuence)
+                    and isinstance(target, abc.MutableSequence)
                     and isinstance(value, abc.Sequence)
                 ):
                     target.extend(value)
@@ -125,11 +145,11 @@ def deepupdate(mapping: abc.MutableMapping, other: abc.Mapping, listextend=False
 
 
 def quietinterrupt(msg=None):
-    """add a handler for SIGINT that optionally prints a given message. For
-    stopping scripts without having to see the stacktrace.
+    """add a handler for SIGINT that optionally prints a given message.
+    For stopping scripts without having to see the stacktrace.
     """
 
-    def handler(*args):
+    def handler():
         if msg:
             print(msg, file=sys.stderr)
         sys.exit(1)
@@ -139,9 +159,9 @@ def quietinterrupt(msg=None):
 
 class PBytes(int):
     """child class of int to facilitate conversion between memory
-    representations in bytes and human readable formats. Mostly for pretty
-    printing, but it can also parse approximate numbers of bytes from a
-    human_readable string.
+    representations in bytes and human readable formats. Mostly for
+    pretty printing, but it can also parse approximate numbers of bytes
+    from a human_readable string.
     """
 
     __slots__ = ()
@@ -155,14 +175,22 @@ class PBytes(int):
         if u == "B":
             return str(n) + " bytes"
 
-        return "%.1f %siB" % self.human_readable()
+        return "%.1f %siB" % (n, u)
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, int(self))
 
     def human_readable(self, decimal=False):
+        """returns the size of size as a tuple of:
+
+            (number, single-letter-unit)
+
+        If the decimal flag is set to true, units 1000 is used as the
+        divisor, rather than 1024.
+        """
         divisor = 1000 if decimal else 1024
         number = int(self)
+        unit = ""
         for unit in self.units:
             if number < divisor:
                 break
@@ -171,8 +199,10 @@ class PBytes(int):
 
     @classmethod
     def from_str(cls, human_readable_str, decimal=False, bits=False):
+        """attempt to parse a size in bytes from a human-readable string."""
         divisor = 1000 if decimal else 1024
         num = []
+        c = ""
         for c in human_readable_str:
             if c not in cls.digits:
                 break
@@ -188,17 +218,21 @@ class PBytes(int):
 
 
 def unpacktsv(file, sep="\t"):
+    """generator for stupidly yielding records from a TSV file"""
     return (line.rstrip().split(sep) for line in file)
 
 
 def printtsv(table, sep="\t", file=sys.stdout):
+    """stupidly print an iterable of iterables in TSV format"""
     for record in table:
         print(*record, sep=sep, file=file)
 
 
 def mkdummy(name, **attrs):
     """Make a placeholder object that uses its own name for its repr"""
-    return type(name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs))()
+    return type(
+        name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs)
+    )()
 
 
 def pipe(value, *functions, funcs=None):
@@ -227,11 +261,24 @@ def fcompose(*functions):
 
 
 class reportiter:
-    __slots__ = "iter", "report", "count", "report"
+    """talk and iterable and call the report hook occasionally as you
+    iterate.
+    """
+
+    __slots__ = "iter", "report", "count", "frequency"
 
     def __init__(
-        self, iterable, frequency=100, report=lambda i: print(i, file=sys.stderr)
+        self,
+        iterable,
+        frequency=100,
+        report=lambda i: print(i, file=sys.stderr),
     ):
+        """
+        - iterable: something to iterate on
+        - frequency: how often to call the report hook
+        - report: function to call every `frequency` iterations
+          default is printing the count to stderr.
+        """
         self.iter = iter(iterable)
         self.report = report
         self.frequency = frequency
