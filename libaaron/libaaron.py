@@ -87,6 +87,14 @@ def chunkprocess(func):
     return wrapper
 
 
+def longchain(iterables):
+    """chain an artibrary number of iterables. (no *args, unlike
+    itertools.chain.)
+    """
+    for iterable in iterables:
+        yield from iterable
+
+
 class DotDict(dict):
     """dict for people who are too lazy to type brackets and quotation
     marks
