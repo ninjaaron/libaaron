@@ -271,8 +271,29 @@ def fcompose(*functions):
     return pipeline(funcs=reversed(functions))
 
 
+def pmap(func):
+    """shorthand for functools.partial(map, func), for use with
+    pipelines.
+    """
+    return functools.partial(map, func)
+
+
+def pfilter(func):
+    """shorthand for functools.partial(filter, func), for use with
+    pipelines.
+    """
+    return functools.partial(filter, func)
+
+
+def preduce(func):
+    """shorthand for functools.partial(functools.reduce, func), for use
+    with pipelines.
+    """
+    return functools.partial(functools.reduce, func)
+
+
 class reportiter:
-    """talk and iterable and call the report hook occasionally as you
+    """take and iterable and call the report hook occasionally as you
     iterate.
     """
 
