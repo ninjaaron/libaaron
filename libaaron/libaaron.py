@@ -95,6 +95,12 @@ def longchain(iterables):
         yield from iterable
 
 
+def getrepr(obj, *args):
+    classname = obj.__class__.__name__
+    argstr = ", ".join(map(repr, args))
+    return "{}({})".format(classname, argstr)
+
+
 class DotDict(dict):
     """dict for people who are too lazy to type brackets and quotation
     marks

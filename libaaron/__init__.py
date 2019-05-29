@@ -15,6 +15,10 @@ from .libaaron import (
     pipe,
     pipeline,
     fcompose,
+    pmap,
+    pfilter,
+    preduce,
+    getrepr,
 )
 
 try:
