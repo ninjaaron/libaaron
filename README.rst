@@ -137,11 +137,43 @@ identical to ``pipeline``, but with reverse application order.
    # in math, this would look like `f ∘ g ∘ h`
    fcompose(f, g, h)(*args, **kwargs) == f(g(h(*args, **kwargs)
 
-Note that there is nothing cleaver about how ``pipeline`` and
+Note that there is nothing clever about how ``pipeline`` and
 ``fcompose`` work. They aren't classes that simulate high-order
 functions like ``functools.partial``, they are just normal high order
 functions, and building pipelines upon pipelines isn't going to optimize
 out the call stack.
+
+``pmap``, ``pfilter`` and ``preduce``
+-------------------------------------
+.. code:: python
+
+   pmap(f) == functools.partial(map, f)
+   pfilter(f) == functools.partial(filter, f)
+   preduce(f) == functools.partial(functools.reduce, f)
+
+Just convenience functions for currying ``map``, ``filter`` and
+``reduce``, which is something which freequently helpful when using the
+above function composition functions.
+
+Allows stuff like this:
+
+.. code:: python
+
+   import sys
+   from libaaron import pipe, pmap, pfilter
+
+   shout_about_dogs = pipe(
+       sys.stdin,
+       pfilter(lambda line: "dog" in line.lower()),
+       pmap(str.upper)
+   )
+
+   # similar to:
+   shout_about_dogs = (l.upper() for l in sys.stdin if dog in l.lower())
+
+The comprehension syntax is obviously clearer in this case. ``pipe`` is
+useful for longer iteration pipelines which can become unclear if
+factored with comprehensions.
 
 ``quiteinterrupt``
 ------------------
