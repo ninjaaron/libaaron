@@ -166,7 +166,7 @@ def quietinterrupt(msg=None):
     For stopping scripts without having to see the stacktrace.
     """
 
-    def handler():
+    def handler(*args, **kwargs):
         if msg:
             print(msg, file=sys.stderr)
         sys.exit(1)
