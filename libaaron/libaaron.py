@@ -11,8 +11,22 @@ import signal
 import string
 import sys
 from collections import abc
+from typing import (
+    Callable,
+    ContextManager,
+    IO,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 # pylint: disable=invalid-name
+T = TypeVar("T")
 
 
 class reify:
@@ -39,13 +53,13 @@ class reify:
         return val
 
 
-def cached(method) -> property:
+def cached(method: Callable) -> Callable:
     """alternative to reify and property decorators. caches the value when it's
     generated. It cashes it as instance._name_of_the_property.
     """
     name = "_" + method.__name__
 
-    @property
+    @property  # type: ignore
     def wrapper(self):
         try:
             return getattr(self, name)
@@ -57,23 +71,24 @@ def cached(method) -> property:
     return wrapper
 
 
-def w(iterable):
+def w(iterable: ContextManager[Iterable[T]]) -> Iterator[T]:
     """yields from an iterable with its context manager."""
-    with iterable:
-        yield from iterable
+    with iterable as it:
+        yield from it
 
 
-def chunkiter(iterable, chunksize):
+def chunkiter(iterable: Iterable[T], chunksize: int) -> Iterator[Sequence[T]]:
     """break an iterable into chunks and yield those chunks as lists
     until there's nothing left to yeild.
     """
     iterator = iter(iterable)
-    for chunk in iter(lambda: list(itertools.islice(iterator, chunksize)), []):
-        yield chunk
+    return iter(  # type: ignore
+        lambda: list(itertools.islice(iterator, chunksize)), []  # type: ignore
+    )
 
 
-def chunkprocess(func):
-    """take a function that taks an iterable as the first argument.
+def chunkprocess(func: Callable):
+    """take a function that takes an iterable as the first argument.
     return a wrapper that will break an iterable into chunks using
     chunkiter and run each chunk in function, yielding the value of each
     function call as an iterator.
@@ -87,7 +102,7 @@ def chunkprocess(func):
     return wrapper
 
 
-def longchain(iterables):
+def longchain(iterables: Iterable[Iterable[T]]) -> Iterator[T]:
     """chain an artibrary number of iterables. (no *args, unlike
     itertools.chain.)
     """
@@ -95,7 +110,8 @@ def longchain(iterables):
         yield from iterable
 
 
-def getrepr(obj, *args):
+def getrepr(obj, *args) -> str:
+    """generate generic reprs for objects."""
     classname = obj.__class__.__name__
     argstr = ", ".join(map(repr, args))
     return "{}({})".format(classname, argstr)
@@ -108,16 +124,18 @@ class DotDict(dict):
 
     __slots__ = ()
     __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
+    __setattr__ = dict.__setitem__  # type: ignore
+    __delattr__ = dict.__delitem__  # type: ignore
 
     def __dir__(self):
         return list(self)
 
 
-def flatten(iterable, map2iter=None):
+def flatten(
+    iterable: Iterable, map2iter: Callable[[Mapping], Iterable] = None
+) -> Iterator:
     """recursively flatten nested objects"""
-    if map2iter and isinstance(iterable):
+    if map2iter and isinstance(iterable, Mapping):
         iterable = map2iter(iterable)
 
     for item in iterable:
@@ -128,20 +146,20 @@ def flatten(iterable, map2iter=None):
 
 
 def deepupdate(
-    mapping: abc.MutableMapping, other: abc.Mapping, listextend=False
+    mapping: MutableMapping, other: Mapping, listextend=False
 ):
     """update one dictionary from another recursively. Only individual
     values will be overwritten--not entire branches of nested
     dictionaries.
     """
 
-    def inner(other, previouskeys):
+    def inner(other: Mapping, previouskeys):
         """previouskeys is a tuple that stores all the names of keys
         we've recursed into so far so it can they can be looked up
         recursively on the pimary mapping when a value needs updateing.
         """
         for key, value in other.items():
-            if isinstance(value, abc.Mapping):
+            if isinstance(value, Mapping):
                 inner(value, (*previouskeys, key))
 
             else:
@@ -161,7 +179,7 @@ def deepupdate(
     inner(other, ())
 
 
-def quietinterrupt(msg=None):
+def quietinterrupt(msg: str = None):
     """add a handler for SIGINT that optionally prints a given message.
     For stopping scripts without having to see the stacktrace.
     """
@@ -195,9 +213,9 @@ class PBytes(int):
         return "%.1f %siB" % (n, u)
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, int(self))
+        return getrepr(self, int(self))
 
-    def human_readable(self, decimal=False):
+    def human_readable(self, decimal=False) -> Tuple[float, str]:
         """returns the size of size as a tuple of:
 
             (number, single-letter-unit)
@@ -206,7 +224,7 @@ class PBytes(int):
         divisor, rather than 1024.
         """
         divisor = 1000 if decimal else 1024
-        number = int(self)
+        number = float(self)
         unit = ""
         for unit in self.units:
             if number < divisor:
@@ -215,18 +233,18 @@ class PBytes(int):
         return number, unit.upper()
 
     @classmethod
-    def from_str(cls, human_readable_str, decimal=False, bits=False):
+    def from_str(cls, human_readable_str: str, decimal=False, bits=False):
         """attempt to parse a size in bytes from a human-readable string."""
         divisor = 1000 if decimal else 1024
-        num = []
+        num_chars = []
         c = ""
         for c in human_readable_str:
             if c not in cls.digits:
                 break
-            num.append(c)
-        num = "".join(num)
+            num_chars.append(c)
+        num_str = "".join(num_chars)
         try:
-            num = int(num)
+            num = int(num_str)  # type: Union[int, float]
         except ValueError:
             num = float(num)
         if bits:
@@ -234,18 +252,18 @@ class PBytes(int):
         return cls(round(num * divisor ** cls.key[c.lower()]))
 
 
-def unpacktsv(file, sep="\t"):
+def unpacktsv(file: IO[str], sep="\t"):
     """generator for stupidly yielding records from a TSV file"""
     return (line.rstrip().split(sep) for line in file)
 
 
-def printtsv(table, sep="\t", file=sys.stdout):
+def printtsv(table: Sequence[Sequence], sep="\t", file: IO[str] = sys.stdout):
     """stupidly print an iterable of iterables in TSV format"""
     for record in table:
         print(*record, sep=sep, file=file)
 
 
-def mkdummy(name, **attrs):
+def mkdummy(name: str, **attrs) -> type:
     """Make a placeholder object that uses its own name for its repr"""
     return type(
         name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs)
@@ -307,7 +325,7 @@ class reportiter:
 
     def __init__(
         self,
-        iterable,
+        iterable: Iterable,
         frequency=100,
         report=lambda i: print(i, file=sys.stderr),
     ):
@@ -337,7 +355,7 @@ class reportiter:
 
 
 try:
-    from lxml import etree
+    from lxml import etree  # type: ignore
 except ImportError:
     pass
 else:
