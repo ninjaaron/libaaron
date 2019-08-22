@@ -357,9 +357,10 @@ class reportiter:
 try:
     from lxml import etree  # type: ignore
 except ImportError as e:
+    err = e
 
     def lxml_little_iter(*args, **kwargs):
-        raise e
+        raise err
 
 else:
 
