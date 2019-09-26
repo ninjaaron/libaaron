@@ -40,7 +40,6 @@ class reify:
     Stolen from pyramid.
     http://docs.pylonsproject.org/projects/pyramid/en/latest/api/decorator.html#pyramid.decorator.reify
     """
-
     def __init__(self, wrapped):
         self.wrapped = wrapped
         functools.update_wrapper(self, wrapped)
@@ -263,7 +262,7 @@ def printtsv(table: Sequence[Sequence], sep="\t", file: IO[str] = sys.stdout):
         print(*record, sep=sep, file=file)
 
 
-def mkdummy(name: str, **attrs) -> type:
+def mkdummy(name: str, **attrs):
     """Make a placeholder object that uses its own name for its repr"""
     return type(
         name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs)
