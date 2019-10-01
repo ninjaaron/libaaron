@@ -1,10 +1,8 @@
 import sys
 from asyncio import *
-
 proc = create_subprocess_exec
-major, minor, *_ = sys.version_info
 
-if (major, minor) < (3, 7):
+if sys.version_info < (3, 7, 0):
 
     def run(coro):
         loop = get_event_loop()
