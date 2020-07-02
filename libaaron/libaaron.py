@@ -52,7 +52,7 @@ class reify:
         return val
 
 
-def cached(method: Callable) -> Callable:
+def cached(method):
     """alternative to reify and property decorators. caches the value when it's
     generated. It cashes it as instance._name_of_the_property.
     """
@@ -373,3 +373,7 @@ else:
             element.clear()
             while element.getprevious() is not None:
                 del element.getparent()[0]
+
+
+def simple_repr(obj, props: tuple):
+    return "%s%s" % (obj.__class__.__qualname__, props)
