@@ -1,4 +1,9 @@
-def fold(f, init, thunk):
+# reduce is the only non-function part of this library. It's defined in terms
+# of benign effects to get around Python's recursion limit.
+from typing import Callable
+
+
+def reduce(f, init, thunk):
     val = thunk()
     while val is not None:
         hd, tl = val

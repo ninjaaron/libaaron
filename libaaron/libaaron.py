@@ -294,25 +294,13 @@ def fcompose(*functions):
     return pipeline(funcs=reversed(functions))
 
 
-def pmap(func):
-    """shorthand for functools.partial(map, func), for use with
-    pipelines.
-    """
-    return functools.partial(map, func)
+def curry(func):
+    return lambda x: functools.partial(func, x)
 
 
-def pfilter(func):
-    """shorthand for functools.partial(filter, func), for use with
-    pipelines.
-    """
-    return functools.partial(filter, func)
-
-
-def preduce(func):
-    """shorthand for functools.partial(functools.reduce, func), for use
-    with pipelines.
-    """
-    return functools.partial(functools.reduce, func)
+pmap = curry(map)
+pfilter = curry(filter)
+preduce = curry(functools.reduce)
 
 
 class reportiter:
