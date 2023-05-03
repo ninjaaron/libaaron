@@ -23,6 +23,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    Optional,
 )
 
 # pylint: disable=invalid-name
@@ -40,6 +41,7 @@ class reify:
     Stolen from pyramid.
     http://docs.pylonsproject.org/projects/pyramid/en/latest/api/decorator.html#pyramid.decorator.reify
     """
+
     def __init__(self, wrapped):
         self.wrapped = wrapped
         functools.update_wrapper(self, wrapped)
@@ -76,13 +78,13 @@ def w(iterable: ContextManager[Iterable[T]]) -> Iterator[T]:
         yield from it
 
 
-def chunkiter(iterable: Iterable[T], chunksize: int) -> Iterator[Sequence[T]]:
+def chunkiter(iterable: Iterable[T], chunksize: int) -> Iterator[list[T]]:
     """break an iterable into chunks and yield those chunks as lists
     until there's nothing left to yeild.
     """
     iterator = iter(iterable)
-    return iter(  # type: ignore
-        lambda: list(itertools.islice(iterator, chunksize)), []  # type: ignore
+    return iter(
+        lambda: list(itertools.islice(iterator, chunksize)), [] 
     )
 
 
@@ -131,7 +133,7 @@ class DotDict(dict):
 
 
 def flatten(
-    iterable: Iterable, map2iter: Callable[[Mapping], Iterable] = None
+    iterable: Iterable, map2iter: Callable[[Mapping], Iterable] | None = None
 ) -> Iterator:
     """recursively flatten nested objects"""
     if map2iter and isinstance(iterable, Mapping):
@@ -144,9 +146,7 @@ def flatten(
             yield from flatten(item, map2iter)
 
 
-def deepupdate(
-    mapping: MutableMapping, other: Mapping, listextend=False
-):
+def deepupdate(mapping: MutableMapping, other: Mapping, listextend=False):
     """update one dictionary from another recursively. Only individual
     values will be overwritten--not entire branches of nested
     dictionaries.
@@ -178,7 +178,7 @@ def deepupdate(
     inner(other, ())
 
 
-def quietinterrupt(msg: str = None):
+def quietinterrupt(msg: str | None = None):
     """add a handler for SIGINT that optionally prints a given message.
     For stopping scripts without having to see the stacktrace.
     """
@@ -281,7 +281,7 @@ def pipe(value, *functions, funcs=None):
 def pipeline(*functions, funcs=None):
     """like pipe, but curried:
 
-        pipline(f, g, h)(*args, **kwargs) == h(g(f(*args, **kwargs)))
+    pipline(f, g, h)(*args, **kwargs) == h(g(f(*args, **kwargs)))
     """
     if funcs:
         functions = funcs
@@ -342,7 +342,7 @@ class reportiter:
 
 
 try:
-    from lxml import etree  # type: ignore
+    from lxml import etree
 except ImportError as e:
     err = e
 
