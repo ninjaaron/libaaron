@@ -10,10 +10,11 @@ import itertools
 import signal
 import string
 import sys
-from collections import abc
 from typing import (
+    cast,
     Callable,
     ContextManager,
+    Concatenate,
     IO,
     Iterable,
     Iterator,
@@ -22,15 +23,18 @@ from typing import (
     Sequence,
     Tuple,
     TypeVar,
-    Union,
-    Optional,
+    ParamSpec,
+    Generic,
 )
+from typing_extensions import reveal_type
 
 # pylint: disable=invalid-name
 T = TypeVar("T")
+S = TypeVar("S")
+P = ParamSpec("P")
 
 
-class reify:
+class reify(Generic[T, S]):
     # pylint: disable=too-few-public-methods
     """Use as a class method decorator.  It operates almost exactly like the
     Python ``@property`` decorator, but it puts the result of the method it
@@ -42,34 +46,16 @@ class reify:
     http://docs.pylonsproject.org/projects/pyramid/en/latest/api/decorator.html#pyramid.decorator.reify
     """
 
-    def __init__(self, wrapped):
+    def __init__(self, wrapped: Callable[[S], T]):
         self.wrapped = wrapped
         functools.update_wrapper(self, wrapped)
 
-    def __get__(self, inst, objtype=None):
+    def __get__(self, inst: S, objtype: type | None = None) -> T:
         if inst is None:
             return self
         val = self.wrapped(inst)
         setattr(inst, self.wrapped.__name__, val)
         return val
-
-
-def cached(method):
-    """alternative to reify and property decorators. caches the value when it's
-    generated. It cashes it as instance._name_of_the_property.
-    """
-    name = "_" + method.__name__
-
-    @property  # type: ignore
-    def wrapper(self):
-        try:
-            return getattr(self, name)
-        except AttributeError:
-            val = method(self)
-            setattr(self, name, val)
-            return val
-
-    return wrapper
 
 
 def w(iterable: ContextManager[Iterable[T]]) -> Iterator[T]:
@@ -84,11 +70,13 @@ def chunkiter(iterable: Iterable[T], chunksize: int) -> Iterator[list[T]]:
     """
     iterator = iter(iterable)
     return iter(
-        lambda: list(itertools.islice(iterator, chunksize)), [] 
+        lambda: list(itertools.islice(iterator, chunksize)), []
     )
 
 
-def chunkprocess(func: Callable):
+def chunkprocess(
+        func: Callable[Concatenate[Iterable[T], P], S]
+) -> Callable[Concatenate[Iterable[T], int, P], Iterator[S]]:
     """take a function that takes an iterable as the first argument.
     return a wrapper that will break an iterable into chunks using
     chunkiter and run each chunk in function, yielding the value of each
@@ -96,7 +84,12 @@ def chunkprocess(func: Callable):
     """
 
     @functools.wraps(func)
-    def wrapper(iterable, chunksize, *args, **kwargs):
+    def wrapper(
+            iterable: Iterable[T],
+            chunksize: int, /,
+            *args: P.args,
+            **kwargs: P.kwargs,
+    ) -> Iterator[S]:
         for chunk in chunkiter(iterable, chunksize):
             yield func(chunk, *args, **kwargs)
 
@@ -111,79 +104,19 @@ def longchain(iterables: Iterable[Iterable[T]]) -> Iterator[T]:
         yield from iterable
 
 
-def getrepr(obj, *args) -> str:
+def getrepr(obj: object, *args: T) -> str:
     """generate generic reprs for objects."""
     classname = obj.__class__.__name__
     argstr = ", ".join(map(repr, args))
     return "{}({})".format(classname, argstr)
 
 
-class DotDict(dict):
-    """dict for people who are too lazy to type brackets and quotation
-    marks
-    """
-
-    __slots__ = ()
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__  # type: ignore
-    __delattr__ = dict.__delitem__  # type: ignore
-
-    def __dir__(self):
-        return list(self)
-
-
-def flatten(
-    iterable: Iterable, map2iter: Callable[[Mapping], Iterable] | None = None
-) -> Iterator:
-    """recursively flatten nested objects"""
-    if map2iter and isinstance(iterable, Mapping):
-        iterable = map2iter(iterable)
-
-    for item in iterable:
-        if isinstance(item, str) or not isinstance(item, abc.Iterable):
-            yield item
-        else:
-            yield from flatten(item, map2iter)
-
-
-def deepupdate(mapping: MutableMapping, other: Mapping, listextend=False):
-    """update one dictionary from another recursively. Only individual
-    values will be overwritten--not entire branches of nested
-    dictionaries.
-    """
-
-    def inner(other: Mapping, previouskeys):
-        """previouskeys is a tuple that stores all the names of keys
-        we've recursed into so far so it can they can be looked up
-        recursively on the pimary mapping when a value needs updateing.
-        """
-        for key, value in other.items():
-            if isinstance(value, Mapping):
-                inner(value, (*previouskeys, key))
-
-            else:
-                node = mapping
-                for previouskey in previouskeys:
-                    node = node.setdefault(previouskey, {})
-                target = node.get(key)
-                if (
-                    listextend
-                    and isinstance(target, abc.MutableSequence)
-                    and isinstance(value, abc.Sequence)
-                ):
-                    target.extend(value)
-                else:
-                    node[key] = value
-
-    inner(other, ())
-
-
-def quietinterrupt(msg: str | None = None):
+def quietinterrupt(msg: str | None = None) -> None:
     """add a handler for SIGINT that optionally prints a given message.
     For stopping scripts without having to see the stacktrace.
     """
 
-    def handler(*args, **kwargs):
+    def handler(*args, **kwargs):  # type: ignore
         if msg:
             print(msg, file=sys.stderr)
         sys.exit(1)
@@ -204,17 +137,17 @@ class PBytes(int):
     digits = set(string.digits)
     digits.update(". ")
 
-    def __str__(self):
+    def __str__(self) -> str:
         n, u = self.human_readable()
         if u == "B":
             return str(n) + " bytes"
 
         return "%.1f %siB" % (n, u)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return getrepr(self, int(self))
 
-    def human_readable(self, decimal=False) -> Tuple[float, str]:
+    def human_readable(self, decimal: bool = False) -> Tuple[float, str]:
         """returns the size of size as a tuple of:
 
             (number, single-letter-unit)
@@ -232,7 +165,12 @@ class PBytes(int):
         return number, unit.upper()
 
     @classmethod
-    def from_str(cls, human_readable_str: str, decimal=False, bits=False):
+    def from_str(
+            cls,
+            human_readable_str: str,
+            decimal: bool = False,
+            bits: bool = False
+    ) -> 'PBytes':
         """attempt to parse a size in bytes from a human-readable string."""
         divisor = 1000 if decimal else 1024
         num_chars = []
@@ -243,7 +181,7 @@ class PBytes(int):
             num_chars.append(c)
         num_str = "".join(num_chars)
         try:
-            num = int(num_str)  # type: Union[int, float]
+            num = int(num_str)  # type: int | float
         except ValueError:
             num = float(num)
         if bits:
@@ -251,50 +189,31 @@ class PBytes(int):
         return cls(round(num * divisor ** cls.key[c.lower()]))
 
 
-def unpacktsv(file: IO[str], sep="\t"):
+def unpacktsv(file: IO[str], sep: str = "\t") -> Iterator[list[str]]:
     """generator for stupidly yielding records from a TSV file"""
     return (line.rstrip().split(sep) for line in file)
 
 
-def printtsv(table: Sequence[Sequence], sep="\t", file: IO[str] = sys.stdout):
+def printtsv(
+        table: Sequence[Sequence[T]],
+        sep: str = "\t",
+        file: IO[str] = sys.stdout,
+) -> None:
     """stupidly print an iterable of iterables in TSV format"""
     for record in table:
         print(*record, sep=sep, file=file)
 
 
-def mkdummy(name: str, **attrs):
+def mkdummy(name: str, **attrs: T) -> object:
     """Make a placeholder object that uses its own name for its repr"""
     return type(
         name, (), dict(__repr__=(lambda self: "<%s>" % name), **attrs)
     )()
 
 
-def pipe(value, *functions, funcs=None):
-    """pipe(value, f, g, h) == h(g(f(value)))"""
-    if funcs:
-        functions = funcs
-    for function in functions:
-        value = function(value)
-    return value
-
-
-def pipeline(*functions, funcs=None):
-    """like pipe, but curried:
-
-    pipline(f, g, h)(*args, **kwargs) == h(g(f(*args, **kwargs)))
-    """
-    if funcs:
-        functions = funcs
-    head, *tail = functions
-    return lambda *args, **kwargs: pipe(head(*args, **kwargs), funcs=tail)
-
-
-def fcompose(*functions):
-    """fcompose(f, g, h)(*args, **kwargs) == f(g(h(*args, **kwargs)"""
-    return pipeline(funcs=reversed(functions))
-
-
-def curry(func):
+def curry(
+        func: Callable[Concatenate[T, P], S]
+) -> Callable[[T], Callable[P, S]]:
     return lambda x: functools.partial(func, x)
 
 
@@ -303,7 +222,7 @@ pfilter = curry(filter)
 preduce = curry(functools.reduce)
 
 
-class reportiter:
+class reportiter(Generic[T]):
     """take and iterable and call the report hook occasionally as you
     iterate.
     """
@@ -312,9 +231,9 @@ class reportiter:
 
     def __init__(
         self,
-        iterable: Iterable,
-        frequency=100,
-        report=lambda i: print(i, file=sys.stderr),
+        iterable: Iterable[T],
+        frequency: int = 100,
+        report: Callable[[int], None] = lambda i: print(i, file=sys.stderr),
     ):
         """
         - iterable: something to iterate on
@@ -327,10 +246,10 @@ class reportiter:
         self.frequency = frequency
         self.count = 0
 
-    def __iter__(self):
+    def __iter__(self) -> 'reportiter[T]':
         return self
 
-    def __next__(self):
+    def __next__(self) -> T:
         self.count += 1
         if not self.count % self.frequency:
             self.report(self.count)
@@ -341,27 +260,29 @@ class reportiter:
             raise
 
 
+def simple_repr(obj: object, props: tuple) -> str:  # type: ignore[type-arg]
+    return "%s%s" % (obj.__class__.__qualname__, props)
+
+
 try:
     from lxml import etree
 except ImportError as e:
-    err = e
-
-    def lxml_little_iter(*args, **kwargs):
-        raise err
-
+    _err: ImportError | None = e
 else:
-
-    def lxml_little_iter(*args, **kwargs):
-        """Use lxml.etree.iterparse to iterate over elements, but clear the
-        tree as we iterate.
-        """
-        context = etree.iterparse(*args, **kwargs)
-        for event, element in context:
-            yield event, element
-            element.clear()
-            while element.getprevious() is not None:
-                del element.getparent()[0]
+    _err = None
 
 
-def simple_repr(obj, props: tuple):
-    return "%s%s" % (obj.__class__.__qualname__, props)
+def lxml_little_iter(
+        *args: P.args, **kwargs: P.kwargs
+) -> Iterator[tuple[str, etree.ElementBase]]:
+    """Use lxml.etree.iterparse to iterate over elements, but clear the
+    tree as we iterate.
+    """
+    if _err:
+        raise _err
+    context = etree.iterparse(*args, **kwargs)
+    for event, element in context:
+        yield event, element
+        element.clear()
+        while element.getprevious() is not None:
+            del element.getparent()[0]

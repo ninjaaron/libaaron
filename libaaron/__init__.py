@@ -1,10 +1,6 @@
 from .libaaron import (
     reify,
-    cached,
     w,
-    DotDict,
-    flatten,
-    deepupdate,
     quietinterrupt,
     PBytes,
     mkdummy,
@@ -12,13 +8,20 @@ from .libaaron import (
     chunkprocess,
     chunkiter,
     printtsv,
-    pipe,
-    pipeline,
-    fcompose,
     pmap,
     pfilter,
     preduce,
     getrepr,
+)
+
+from .nonstrict import (
+    cached,
+    DotDict,
+    flatten,
+    deepupdate,
+    pipe,
+    pipeline,
+    fcompose,
 )
 
 try:
