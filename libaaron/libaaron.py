@@ -273,7 +273,7 @@ else:
 
 def lxml_little_iter(
         *args: P.args, **kwargs: P.kwargs
-) -> Iterator[tuple[str, etree.ElementBase]]:
+) -> Iterator[tuple[str, "etree.ElementBase"]]:
     """Use lxml.etree.iterparse to iterate over elements, but clear the
     tree as we iterate.
     """
