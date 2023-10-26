@@ -26,7 +26,6 @@ from typing import (
     ParamSpec,
     Generic,
 )
-from typing_extensions import reveal_type
 
 # pylint: disable=invalid-name
 T = TypeVar("T")
